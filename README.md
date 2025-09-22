@@ -30,7 +30,11 @@ WMCodec-M2/
 %cd WMCodec-M2/WMCodec
 !pip install -r requirements.txt
 ```
-3. Run inference (example: Gaussian noise attack, SNR=20dB):
+3. Upload the audio file for testing
+```
+uploaded = files.upload()
+```
+4. Run inference (example: Gaussian noise attack, SNR=20dB):
 ```
 !python inference-at.py \
   --input_wavs_dir ../../input_audio \
