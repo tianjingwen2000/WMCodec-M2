@@ -1,0 +1,16 @@
+torch==2.8.0
+torchaudio==2.8.0
+numpy
+scipy
+einops
+tqdm
+librosa==0.10.1
+soundfile
+resampy
+soxr
+pydub
+pesq
+pystoi
+matplotlib
+pandas
+rich
