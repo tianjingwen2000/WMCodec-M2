@@ -118,6 +118,58 @@ def inference(a):
             y_in = y
             if a.attack_type == 'gaussian':
                 y_in = add_gaussian_noise(y_in, a.snr_db)
+            
+            # ================ WHAT WE DID ================
+            # === MP3 Compression Attack ===
+            elif a.attack_type == 'mp3':
+              import tempfile, subprocess
+              import soundfile as sf
+              tmp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+              tmp_mp3 = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
+              tmp_out = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+
+              # save as wav
+              wav_np = y_in.squeeze().cpu().numpy()
+              sf.write(tmp_wav.name, wav_np, sr)
+              # ffmpeg, compress and then decompress
+              subprocess.run(["ffmpeg","-y","-i",tmp_wav.name,"-b:a",a.bitrate,tmp_mp3.name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+              subprocess.run(["ffmpeg","-y","-i",tmp_mp3.name,tmp_out.name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+              wav_re, sr_re = librosa.load(tmp_out.name, sr=sr)
+              y_in = torch.from_numpy(wav_re).float().to(y_in.device).view(1,1,-1)
+
+            # === Resample Attack ===
+            elif a.attack_type == 'resample':
+              wav_np = y_in.squeeze().cpu().numpy()
+              wav_re = librosa.resample(wav_np, orig_sr=sr, target_sr=a.target_sr)
+              wav_re = librosa.resample(wav_re, orig_sr=a.target_sr, target_sr=sr) # 再拉回原采样率
+              y_in = torch.from_numpy(wav_re).float().to(y_in.device).view(1,1,-1)
+
+            # === Lowpass Filter Attack ===
+            elif a.attack_type == 'lowpass':
+              from scipy.signal import butter, lfilter
+              import numpy as np
+              def butter_lowpass(cutoff, fs, order=6):
+                  nyq = 0.5 * fs
+                  normal_cutoff = cutoff / nyq
+                  b,aaa = butter(order, normal_cutoff, btype='low', analog=False)
+                  return b,aaa
+              b,aaa = butter_lowpass(a.cutoff, sr)
+              wav_np = y_in.squeeze().cpu().numpy()
+              wav_lp = lfilter(b, aaa, wav_np)
+              y_in = torch.from_numpy(wav_lp).float().to(y_in.device).view(1,1,-1)
+
+            # === Reverb Attack ===
+            elif a.attack_type == 'reverb':
+              import numpy as np
+              # Simple reverb: Original signal + delayed attenuation version
+              wav_np = y_in.squeeze().cpu().numpy()
+              delay = int(0.03 * sr)   # 30ms delay
+              decay = 0.6
+              echo = np.zeros_like(wav_np)
+              if len(wav_np) > delay:
+                  echo[delay:] = wav_np[:-delay] * decay
+              wav_rev = wav_np + echo
+              y_in = torch.from_numpy(wav_rev).float().to(y_in.device).view(1,1,-1)
             # ======================================================
 
             if y.shape[2] <= 1.125 * sr: 
@@ -249,8 +301,12 @@ def main():
     parser.add_argument('--checkpoint_file', default='') 
     # === M2 ADD: CLI args for reproducibility & attacks ===
     parser.add_argument('--run_id', default='m2')
-    parser.add_argument('--attack_type', default='none', choices=['none','gaussian'])
+    # =================== WHAT WE DID ===================
+    parser.add_argument('--attack_type', default='none', choices=['none','gaussian','mp3','resample','lowpass','reverb'])
     parser.add_argument('--snr_db', type=float, default=30.0)
+    parser.add_argument('--bitrate', type=str, default="64k")     # mp3 attack parameter
+    parser.add_argument('--target_sr', type=int, default=16000)    # resample attack parameter
+    parser.add_argument('--cutoff', type=float, default=3000.0)    # lowpass attack parameter
     parser.add_argument('--seed', type=int, default=2025)
     # =======================================================
     a = parser.parse_args()
