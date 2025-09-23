@@ -27,8 +27,9 @@ WMCodec-M2/
 ```
 2. Install dependencies:
 ```
-%cd WMCodec-M2/WMCodec
-!pip install -r requirements.txt
+!pip install -r WMCodec-M2/WMCodec/requirements.txt
+!apt-get -y update && apt-get -y install ffmpeg
+
 ```
 3. Upload the audio file for testing
 ```
