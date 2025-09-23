@@ -287,7 +287,7 @@ def main():
     # === M2 ADD: CLI args for reproducibility & attacks ===
     parser.add_argument('--run_id', default='m2')
     # =================== WHAT WE DID ===================
-    parser.add_argument('--attack_type', default='none', choices=['none','gaussian','mp3','resample','lowpass','reverb'])
+    parser.add_argument('--attack_type', default='none', choices=['none','gaussian','mp3','resample','reverb'])
     parser.add_argument('--snr_db', type=float, default=30.0)
     parser.add_argument('--bitrate', type=str, default="64k")     # mp3 attack parameter
     parser.add_argument('--target_sr', type=int, default=16000)    # resample attack parameter
