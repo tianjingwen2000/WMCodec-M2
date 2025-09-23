@@ -124,7 +124,6 @@ def inference(a):
             elif a.attack_type == 'mp3':
               import tempfile, subprocess
               import soundfile as sf
-              import numpy as np
               tmp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
               tmp_mp3 = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
               tmp_out = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
@@ -142,26 +141,11 @@ def inference(a):
             elif a.attack_type == 'resample':
               wav_np = y_in.squeeze().cpu().numpy()
               wav_re = librosa.resample(wav_np, orig_sr=sr, target_sr=a.target_sr)
-              wav_re = librosa.resample(wav_re, orig_sr=a.target_sr, target_sr=sr) # 再拉回原采样率
+              wav_re = librosa.resample(wav_re, orig_sr=a.target_sr, target_sr=sr) 
               y_in = torch.from_numpy(wav_re).float().to(y_in.device).view(1,1,-1)
-
-            # === Lowpass Filter Attack ===
-            elif a.attack_type == 'lowpass':
-              from scipy.signal import butter, lfilter
-              import numpy as np
-              def butter_lowpass(cutoff, fs, order=6):
-                  nyq = 0.5 * fs
-                  normal_cutoff = cutoff / nyq
-                  b,aaa = butter(order, normal_cutoff, btype='low', analog=False)
-                  return b,aaa
-              b,aaa = butter_lowpass(a.cutoff, sr)
-              wav_np = y_in.squeeze().cpu().numpy()
-              wav_lp = lfilter(b, aaa, wav_np)
-              y_in = torch.from_numpy(wav_lp).float().to(y_in.device).view(1,1,-1)
 
             # === Reverb Attack ===
             elif a.attack_type == 'reverb':
-              import numpy as np
               # Simple reverb: Original signal + delayed attenuation version
               wav_np = y_in.squeeze().cpu().numpy()
               delay = int(0.03 * sr)   # 30ms delay
@@ -307,7 +291,6 @@ def main():
     parser.add_argument('--snr_db', type=float, default=30.0)
     parser.add_argument('--bitrate', type=str, default="64k")     # mp3 attack parameter
     parser.add_argument('--target_sr', type=int, default=16000)    # resample attack parameter
-    parser.add_argument('--cutoff', type=float, default=3000.0)    # lowpass attack parameter
     parser.add_argument('--seed', type=int, default=2025)
     # =======================================================
     a = parser.parse_args()
