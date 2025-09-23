@@ -124,6 +124,7 @@ def inference(a):
             elif a.attack_type == 'mp3':
               import tempfile, subprocess
               import soundfile as sf
+              import numpy as np
               tmp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
               tmp_mp3 = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
               tmp_out = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
