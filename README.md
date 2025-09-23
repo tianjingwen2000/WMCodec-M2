@@ -34,23 +34,29 @@ WMCodec-M2/
 ```
 uploaded = files.upload()
 ```
-4. Run inference (example: Gaussian noise attack, SNR=20dB):
+4. Run inference (example: Gaussian noise attack):
 ```
-!python inference-at.py \
-  --input_wavs_dir ../../input_audio \
-  --output_dir ../../results_demo \
-  --checkpoint_file ../../WMCodec_hc/save_model/g_00150000 \
-  --run_id m2-gauss20 \
-  --attack_type gaussian \
-  --snr_db 20 \
-  --seed 2025
+!rm -f results_demo/results.csv
+
+!python WMCodec-M2/WMCodec/inference-at.py \
+  --input_wavs_dir input_audio \
+  --output_dir results_demo \
+  --checkpoint_file WMCodec_hc/save_model/g_00150000 \
+  --run_id m2 \
+  --attack_type none  #replace this line
+  #--attack_type reverb
+  #--attack_type lowpass --cutoff 3000
+  #--attack_type resample --target_sr 16000
+  #--attack_type mp3 --bitrate 16k
+  #--attack_type gaussian --snr_db 1
+  #--attack_type none
 ```
 
 ## 🛠️ Milestone 2 Modifications
 
 - Logging & Metrics: save results to results.csv (cross-entropy, bit accuracy, PESQ, STOI).
 
-- Attack Simulation: added --attack_type gaussian and --snr_db to simulate Gaussian noise on input.
+- Attack Simulation: added --attack_type gaussian and --snr_db to simulate Gaussian noise on input. There are other forms of attack, which will not be elaborated on here.
 
 - Reproducibility: added --seed, fixed NumPy/Random/Torch seeds.
 
