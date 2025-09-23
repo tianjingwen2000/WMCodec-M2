@@ -45,7 +45,6 @@ uploaded = files.upload()
   --run_id m2 \
   --attack_type none  #replace this line
   #--attack_type reverb
-  #--attack_type lowpass --cutoff 3000
   #--attack_type resample --target_sr 16000
   #--attack_type mp3 --bitrate 16k
   #--attack_type gaussian --snr_db 1
